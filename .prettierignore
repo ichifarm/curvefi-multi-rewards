@@ -1,12 +1,4 @@
-__pycache__
-.history
-.hypothesis/
-build/
-reports/
-
-## Hardhat Specific
-
-### directories
+# directories
 .coverage_artifacts
 .coverage_cache
 .coverage_contracts
@@ -17,15 +9,13 @@ coverage
 dist
 node_modules
 types
-deployments
 
-.openzeppelin
-
-### files
+# files
 *.env
 *.log
 .DS_Store
 .pnp.*
 coverage.json
 package-lock.json
+pnpm-lock.yaml
 yarn.lock

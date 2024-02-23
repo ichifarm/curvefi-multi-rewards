@@ -29,3 +29,6 @@ deployments
 coverage.json
 package-lock.json
 yarn.lock
+
+# Build Artifacts
+!artifacts/contracts/MultiRewards.sol/MultiRewards.json

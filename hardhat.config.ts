@@ -5,6 +5,7 @@ import "hardhat-deploy";
 import type { HardhatUserConfig } from "hardhat/config";
 import type { NetworkUserConfig } from "hardhat/types";
 import { resolve } from "path";
+
 import { SupportedChainId, isValidChainId } from "./test/shared/chains";
 
 const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "./.env";
@@ -62,11 +63,11 @@ function getAccounts() {
       count: 10,
       mnemonic,
       path: "m/44'/60'/0'/0",
-    }
+    };
     return accounts;
   }
   throw new Error("Either mnemonic or PKs should be defined");
-};
+}
 
 // NOTE: we mostly don't care fast fork tests from caching
 const forkBlockNumbers: Partial<Record<SupportedChainId, number>> = {
@@ -88,21 +89,11 @@ function getForkChainBlockNumber(chainId: SupportedChainId): number | undefined 
 }
 
 const fallbackRpcUrls: Record<SupportedChainId, string[]> = {
-  [SupportedChainId.ETHEREUM_MAINNET]: [
-    "https://eth.llamarpc.com"
-  ],
-  [SupportedChainId.OPTIMISM_MAINNET]: [
-    "https://optimism.llamarpc.com"
-  ],
-  [SupportedChainId.BSC_MAINNET]: [
-    "https://rpc.ankr.com/bsc"
-  ],
-  [SupportedChainId.POLYGON_MAINNET]: [
-    "https://polygon.llamarpc.com"
-  ],
-  [SupportedChainId.OPBNB_MAINNET]: [
-    "https://opbnb.publicnode.com"
-  ],
+  [SupportedChainId.ETHEREUM_MAINNET]: ["https://eth.llamarpc.com"],
+  [SupportedChainId.OPTIMISM_MAINNET]: ["https://optimism.llamarpc.com"],
+  [SupportedChainId.BSC_MAINNET]: ["https://rpc.ankr.com/bsc"],
+  [SupportedChainId.POLYGON_MAINNET]: ["https://polygon.llamarpc.com"],
+  [SupportedChainId.OPBNB_MAINNET]: ["https://opbnb.publicnode.com"],
   [SupportedChainId.FANTOM_MAINNET]: [
     "https://rpc.fantom.network",
     "https://rpcapi.fantom.network",
@@ -114,18 +105,10 @@ const fallbackRpcUrls: Record<SupportedChainId, string[]> = {
     "https://fantom-mainnet.public.blastapi.io",
     "https://endpoints.omniatech.io/v1/fantom/mainnet/public",
   ],
-  [SupportedChainId.HEDERA_MAINNET]: [
-    "https://mainnet.hashio.io/api"
-  ],
-  [SupportedChainId.HEDERA_TESTNET]: [
-    "https://testnet.hashio.io/api"
-  ],
-  [SupportedChainId.POLYGON_ZKEVM]: [
-    "https://rpc.ankr.com/polygon_zkevm"
-  ],
-  [SupportedChainId.GANACHE]: [
-    "http://localhost:8545"
-  ],
+  [SupportedChainId.HEDERA_MAINNET]: ["https://mainnet.hashio.io/api"],
+  [SupportedChainId.HEDERA_TESTNET]: ["https://testnet.hashio.io/api"],
+  [SupportedChainId.POLYGON_ZKEVM]: ["https://rpc.ankr.com/polygon_zkevm"],
+  [SupportedChainId.GANACHE]: ["http://localhost:8545"],
   [SupportedChainId.MANTLE_MAINNET]: [
     "https://1rpc.io/mantle",
     "https://rpc.mantle.xyz",
@@ -166,21 +149,11 @@ const fallbackRpcUrls: Record<SupportedChainId, string[]> = {
     "https://avalanche.blockpi.network/v1/rpc/public",
     "https://avalanche.drpc.org",
   ],
-  [SupportedChainId.SEPOLIA]: [
-    "https://1rpc.io/sepolia"
-  ],
-  [SupportedChainId.ARBITRUM_MAINNET]: [
-    "https://arbitrum.llamarpc.com"
-  ],
-  [SupportedChainId.POLYGON_MUMBAI]: [
-    "https://polygon-testnet.public.blastapi.io"
-  ],
-  [SupportedChainId.LINEA_MAINNET]: [
-    "https://linea.drpc.org"
-  ],
-  [SupportedChainId.HORIZEN_MAINNET]: [
-    "https://rpc.ankr.com/horizen_eon"
-  ],
+  [SupportedChainId.SEPOLIA]: ["https://1rpc.io/sepolia"],
+  [SupportedChainId.ARBITRUM_MAINNET]: ["https://arbitrum.llamarpc.com"],
+  [SupportedChainId.POLYGON_MUMBAI]: ["https://polygon-testnet.public.blastapi.io"],
+  [SupportedChainId.LINEA_MAINNET]: ["https://linea.drpc.org"],
+  [SupportedChainId.HORIZEN_MAINNET]: ["https://rpc.ankr.com/horizen_eon"],
   [SupportedChainId.BASE_MAINNET]: [
     "https://mainnet.base.org",
     "https://base.blockpi.network/v1/rpc/public",
@@ -194,14 +167,10 @@ const fallbackRpcUrls: Record<SupportedChainId, string[]> = {
     "https://base.publicnode.com",
     "https://base.drpc.org",
     "https://endpoints.omniatech.io/v1/base/mainnet/public",
-    "https://base.llamarpc.com"
+    "https://base.llamarpc.com",
   ],
-  [SupportedChainId.ZKSYNC_TESTNET]: [
-    "https://sepolia.era.zksync.dev"
-  ],
-  [SupportedChainId.ZKSYNC_MAINNET]: [
-    "https://mainnet.era.zksync.io"
-  ],
+  [SupportedChainId.ZKSYNC_TESTNET]: ["https://sepolia.era.zksync.dev"],
+  [SupportedChainId.ZKSYNC_MAINNET]: ["https://mainnet.era.zksync.io"],
 };
 
 const defaultRpcUrls: Record<SupportedChainId, string> = {
@@ -254,7 +223,7 @@ function getChainConfig(chainId: SupportedChainId): NetworkUserConfig {
     accounts: getAccounts(),
     chainId,
     url: jsonRpcUrl,
-    timeout: 60_000 // added as the default timeout isn't sufficient for Hedera
+    timeout: 60_000, // added as the default timeout isn't sufficient for Hedera
   };
 }
 
@@ -272,14 +241,13 @@ function getForkChainConfig(chain: SupportedChainId): {
   url: string;
   blockNumber?: number;
 } {
-
   const jsonRpcUrl = getChainUrl(chain);
   const blockNumber = getForkChainBlockNumber(chain);
 
   return {
     url: jsonRpcUrl,
-    blockNumber
-  }
+    blockNumber,
+  };
 }
 
 const config: HardhatUserConfig = {
@@ -313,8 +281,8 @@ const config: HardhatUserConfig = {
     hardhat: {
       forking: forkChain ? getForkChainConfig(forkChain) : undefined,
       chainId: forkChain ? forkChain : SupportedChainId.HARDHAT,
-      accounts:{
-        mnemonic
+      accounts: {
+        mnemonic,
       },
     },
     ganache: {

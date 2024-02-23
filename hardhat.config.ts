@@ -267,7 +267,18 @@ const config: HardhatUserConfig = {
       polygon: process.env.POLYGONSCAN_API_KEY || "",
       polygonMumbai: process.env.POLYGONSCAN_API_KEY || "",
       sepolia: process.env.ETHERSCAN_API_KEY || "",
+      evmos: process.env.ESCAN_API_KEY || "",
     },
+    customChains: [
+      {
+        chainId: 9001,
+        network: "evmos",
+        urls: {
+          apiURL: "https://escan.live/api",
+          browserURL: "https://escan.live"
+        }
+      }
+    ]
   },
   gasReporter: {
     currency: "USD",

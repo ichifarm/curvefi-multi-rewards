@@ -27,6 +27,9 @@ contract MultiRewardsMinimal is ReentrancyGuard, Pausable {
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
 
+    // Added mapping to track unallocated rewards per reward token
+    mapping(address => uint256) public unallocatedRewards;
+
     /* ========== CONSTRUCTOR ========== */
 
     constructor(
@@ -114,7 +117,7 @@ contract MultiRewardsMinimal is ReentrancyGuard, Pausable {
                 IERC20(_rewardsToken).safeTransfer(msg.sender, reward);
                 emit RewardPaid(msg.sender, _rewardsToken, reward);
             }
-    }
+        }
     }
 
     function exit() external {
@@ -130,17 +133,21 @@ contract MultiRewardsMinimal is ReentrancyGuard, Pausable {
         // of transactions required and ensure correctness of the reward amount
         IERC20(_rewardsToken).safeTransferFrom(msg.sender, address(this), reward);
 
+        // Include unallocated rewards accumulated up to now
+        uint256 unallocated = unallocatedRewards[_rewardsToken];
+        unallocatedRewards[_rewardsToken] = 0;
+
         if (block.timestamp >= rewardData[_rewardsToken].periodFinish) {
-            rewardData[_rewardsToken].rewardRate = reward.div(rewardData[_rewardsToken].rewardsDuration);
+            rewardData[_rewardsToken].rewardRate = (reward.add(unallocated)).div(rewardData[_rewardsToken].rewardsDuration);
         } else {
             uint256 remaining = rewardData[_rewardsToken].periodFinish.sub(block.timestamp);
             uint256 leftover = remaining.mul(rewardData[_rewardsToken].rewardRate);
-            rewardData[_rewardsToken].rewardRate = reward.add(leftover).div(rewardData[_rewardsToken].rewardsDuration);
+            rewardData[_rewardsToken].rewardRate = (reward.add(leftover).add(unallocated)).div(rewardData[_rewardsToken].rewardsDuration);
         }
 
         rewardData[_rewardsToken].lastUpdateTime = block.timestamp;
         rewardData[_rewardsToken].periodFinish = block.timestamp.add(rewardData[_rewardsToken].rewardsDuration);
-        emit RewardAdded(reward);
+        emit RewardAdded(reward.add(unallocated));
     }
 
     // Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
@@ -167,8 +174,18 @@ contract MultiRewardsMinimal is ReentrancyGuard, Pausable {
     modifier updateReward(address account) {
         for (uint i; i < rewardTokens.length; i++) {
             address token = rewardTokens[i];
-            rewardData[token].rewardPerTokenStored = rewardPerToken(token);
-            rewardData[token].lastUpdateTime = lastTimeRewardApplicable(token);
+            // Compute the applicable time for rewards
+            uint256 lastApplicableTime = lastTimeRewardApplicable(token);
+            uint256 timeDifference = lastApplicableTime.sub(rewardData[token].lastUpdateTime);
+            if (_totalSupply > 0) {
+                // Update rewardPerTokenStored
+                rewardData[token].rewardPerTokenStored = rewardPerToken(token);
+            } else if (timeDifference > 0) {
+                // Accumulate unallocated rewards when total supply is zero
+                uint256 unallocated = timeDifference.mul(rewardData[token].rewardRate);
+                unallocatedRewards[token] = unallocatedRewards[token].add(unallocated);
+            }
+            rewardData[token].lastUpdateTime = lastApplicableTime;
             if (account != address(0)) {
                 rewards[account][token] = earned(account, token);
                 userRewardPerTokenPaid[account][token] = rewardData[token].rewardPerTokenStored;

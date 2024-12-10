@@ -301,3 +301,14 @@ The smart contract within this repository is forked from [Synthetixio/synthetix]
 This repository is licensed under the [MIT License](LICENSE).
 
 ---
+
+## Ignition Deployment and Verification
+
+Make sure the deployer private key is configured.
+
+```shell
+# to deploy to a network
+npx hardhat ignition deploy ignition/modules/MultiRewards.ts --network <network-name>
+
+# use the --verify flag to also verify the deployment
+```

@@ -1,5 +1,5 @@
 import "@nomicfoundation/hardhat-toolbox";
-import "@openzeppelin/hardhat-upgrades";
+import "@nomicfoundation/hardhat-verify"
 import { config as dotenvConfig } from "dotenv";
 import "hardhat-deploy";
 import { vars } from "hardhat/config";
@@ -82,7 +82,7 @@ export const etherscanConfig: Partial<Record<SupportedChainId, ChainConfigMinima
   [SupportedChainId.INK_SEPOLIA]: {
     urls: {
       apiURL: "https://api.routescan.io/v2/network/testnet/evm/763373/etherscan",
-      browserURL: "https://sepolia.inkonscan.xyz/",
+      browserURL: "https://sepolia.inkonscan.xyz",
     },
     // urls: {
     //   apiURL: "https://explorer-sepolia.inkonchain.com/api",
@@ -410,8 +410,6 @@ const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   namedAccounts: {
     deployer: 0,
-    governor: 1,
-    lp: 2,
   },
   etherscan: {
     apiKey: {

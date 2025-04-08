@@ -26,8 +26,10 @@ describe("Verify All Contracts via Etherscan", async function () {
   const isHardhat = network.name === "hardhat";
 
   const requisiteData: {
+    MULTI_REWARDS_FACTORY_ADDRESS: string;
     MULTI_REWARDS_ADDRESS: string;
   } = {
+    MULTI_REWARDS_FACTORY_ADDRESS: "",
     MULTI_REWARDS_ADDRESS: "",
   };
 
@@ -41,15 +43,6 @@ describe("Verify All Contracts via Etherscan", async function () {
 
     const signers = await getProjectSigners();
     ({deployer} = signers);
-
-    const {
-      MULTI_REWARDS_ADDRESS
-    } = requisiteData;
-
-    if (!MULTI_REWARDS_ADDRESS) {
-      throw new Error('MULTI_REWARDS_ADDRESS is not defined')
-    }
-
   });
 
   after(async () => {
@@ -69,11 +62,32 @@ describe("Verify All Contracts via Etherscan", async function () {
   //   }
   // });
 
+  it("should verify MultiRewardsFactory", async () => {
+
+    const {
+      MULTI_REWARDS_FACTORY_ADDRESS
+    } = requisiteData;
+
+    if (!MULTI_REWARDS_FACTORY_ADDRESS) {
+      return this.ctx.skip();
+    }
+
+    await run("verify:verify", {
+      contract: "contracts/MultiRewardsFactory.sol:MultiRewardsFactory",
+      address: MULTI_REWARDS_FACTORY_ADDRESS,
+      constructorArguments: [],
+    });
+  });
+
   it("should verify MultiRewards", async () => {
 
     const {
       MULTI_REWARDS_ADDRESS
     } = requisiteData;
+
+    if (!MULTI_REWARDS_ADDRESS) {
+      return this.ctx.skip();
+    }
 
     const mr = MultiRewards__factory.connect(MULTI_REWARDS_ADDRESS, deployer)
 

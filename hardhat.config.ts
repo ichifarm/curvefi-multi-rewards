@@ -96,9 +96,13 @@ export const etherscanConfig: Partial<Record<SupportedChainId, ChainConfigMinima
     },
   },
   [SupportedChainId.BERACHAIN_MAINNET]: {
+    // urls: {
+    //   apiURL: "https://api.routescan.io/v2/network/mainnet/evm/80094/etherscan",
+    //   browserURL:  "https://beratrail.io",
+    // },
     urls: {
-      apiURL: "https://api.routescan.io/v2/network/mainnet/evm/80094/etherscan",
-      browserURL:  "https://beratrail.io",
+      apiURL: "https://api.berascan.com/api",
+      browserURL:  "https://berascan.com",
     },
   },
   [SupportedChainId.MANTLE_MAINNET]: {
@@ -158,7 +162,7 @@ export const etherscanApiKeys: EnforcedApiKeys<typeof etherscanConfig> = {
   [SupportedChainId.FANTOM_MAINNET]: process.env.FTMSCAN_API_KEY || "",
   [SupportedChainId.INK_SEPOLIA]: dummyApiKey, // no API key required
   [SupportedChainId.INK_MAINNET]: dummyApiKey, // no API key required
-  [SupportedChainId.BERACHAIN_MAINNET]: dummyApiKey, // no API key required
+  [SupportedChainId.BERACHAIN_MAINNET]: process.env.BERASCAN_API_KEY || dummyApiKey, // no API key required
 
   // extra optional SupportedChainId
   [SupportedChainId.ARBITRUM_MAINNET]: process.env.ARBISCAN_API_KEY || "",

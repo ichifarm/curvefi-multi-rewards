@@ -17,7 +17,7 @@ coverage
 dist
 node_modules
 types
-deployments
+./deployments
 
 .openzeppelin
 
@@ -32,3 +32,10 @@ yarn.lock
 
 # Build Artifacts
 !artifacts/contracts/MultiRewards.sol/MultiRewards.json
+!artifacts/contracts/MultiRewardsFactory.sol/MultiRewardsFactory.json
+
+typechain/
+typechain-types/
+
+ignition/deployments/**/journal.jsonl
+ignition/deployments/**/build-info/

@@ -1,7 +1,8 @@
 import "@nomicfoundation/hardhat-toolbox";
-import "@openzeppelin/hardhat-upgrades";
+import "@nomicfoundation/hardhat-verify"
 import { config as dotenvConfig } from "dotenv";
 import "hardhat-deploy";
+import { vars } from "hardhat/config";
 import type { HardhatUserConfig } from "hardhat/config";
 import type { NetworkUserConfig } from "hardhat/types";
 import { resolve } from "path";
@@ -14,8 +15,11 @@ dotenvConfig({ path: resolve(__dirname, dotenvConfigPath) });
 // Ensure that we have all the environment variables we need.
 const mnemonic: string | undefined = process.env.MNEMONIC;
 
-if (!mnemonic) {
-  throw new Error("Please set your PKs or MNEMONIC in a .env file");
+const deployerPK: string | undefined = vars.get("DEPLOYER_PK");
+const hasPK = deployerPK;
+
+if (!mnemonic && !hasPK) {
+  throw new Error("Please set your PK or MNEMONIC in a .env file");
 }
 
 const infuraApiKey: string | undefined = process.env.INFURA_API_KEY;
@@ -29,6 +33,146 @@ const DEX = process.env.DEX;
 if (!isValidChainId(CHAIN_ID)) {
   throw new Error(`CHAIN_ID ${CHAIN_ID} is not supported`);
 }
+
+interface ChainConfigMinimal {
+  urls: {
+    apiURL: string;
+    browserURL: string;
+  };
+}
+
+interface ChainConfig {
+  network: string;
+  chainId: number;
+  urls: {
+    apiURL: string;
+    browserURL: string;
+  };
+}
+
+// Runtime check to ensure all required keys are present
+// Build/compile time check with a type to enforce this doesn't seem possible
+function verifyConfigIntegrity(
+  config: Partial<Record<SupportedChainId, ChainConfigMinimal>>,
+  apiKeys: Record<SupportedChainId, string>,
+) {
+  for (const key in config) {
+    if (!(key in apiKeys)) {
+      throw new Error(`Explorer API key for ${SupportedChainId[key as any]} is missing`);
+    }
+  }
+}
+
+// Only need to specify etherscanConfig for a chain if it's not supported by default:
+// npx hardhat verify --list-networks
+// for configs of already supported networks(with different chainNames) look inside: @nomiclabs/hardhat-etherscan/src/ChainConfig.ts
+export const etherscanConfig: Partial<Record<SupportedChainId, ChainConfigMinimal>> = {
+  [SupportedChainId.BASE_MAINNET]: {
+    urls: {
+      apiURL: "https://api.basescan.org/api",
+      browserURL: "https://basescan.org/",
+    },
+  },
+  [SupportedChainId.EVMOS_MAINNET]: {
+    urls: {
+      apiURL: "https://escan.live/api",
+      browserURL: "https://escan.live",
+    },
+  },
+  [SupportedChainId.INK_SEPOLIA]: {
+    urls: {
+      apiURL: "https://api.routescan.io/v2/network/testnet/evm/763373/etherscan",
+      browserURL: "https://sepolia.inkonscan.xyz",
+    },
+    // urls: {
+    //   apiURL: "https://explorer-sepolia.inkonchain.com/api",
+    //   browserURL: "https://explorer-sepolia.inkonchain.com",
+    // },
+  },
+  [SupportedChainId.INK_MAINNET]: {
+    urls: {
+      apiURL: "https://pqr0zfqez8pm54s.blockscout.com/api",
+      browserURL: "https://pqr0zfqez8pm54s.blockscout.com",
+    },
+  },
+  [SupportedChainId.BERACHAIN_MAINNET]: {
+    urls: {
+      apiURL: "https://api.routescan.io/v2/network/mainnet/evm/80094/etherscan",
+      browserURL:  "https://beratrail.io",
+    },
+  },
+  [SupportedChainId.MANTLE_MAINNET]: {
+    // urls: {
+    //   apiURL: "https://api.routescan.io/v2/network/mainnet/evm/5000/etherscan",
+    //   browserURL: "https://mantlescan.info"
+    // urls: {
+    //   apiURL: "https://explorer.mantle.xyz/api",
+    //   browserURL: "https://explorer.mantle.xyz/"
+    // },
+    urls: {
+      apiURL: "https://api.mantlescan.xyz/api",
+      browserURL: "https://mantlescan.xyz",
+    },
+  },
+  [SupportedChainId.POLYGON_ZKEVM]: {
+    urls: {
+      apiURL: "https://api-zkevm.polygonscan.com/api",
+      browserURL: "https://zkevm.polygonscan.com",
+    },
+  },
+  [SupportedChainId.LINEA_MAINNET]: {
+    urls: {
+      apiURL: "https://api.lineascan.build/api",
+      browserURL: "https://lineascan.build/",
+    },
+  },
+  [SupportedChainId.OPBNB_MAINNET]: {
+    urls: {
+      apiURL: `https://open-platform.nodereal.io/${process.env.NODEREAL_API_KEY}/op-bnb-mainnet/contract/`,
+      browserURL: "https://opbnbscan.com/",
+    },
+  },
+  [SupportedChainId.FANTOM_MAINNET]: {
+    urls: {
+      apiURL: "https://api.ftmscan.com/api",
+      browserURL: "https://ftmscan.com",
+    },
+  },
+};
+
+// Utility type to extract and enforce keys from etherscanConfig
+type EnforcedApiKeys<T extends object> = {
+  [P in keyof T]: string;
+} & Partial<Record<SupportedChainId, string>>;
+
+const dummyApiKey = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz";
+
+export const etherscanApiKeys: EnforcedApiKeys<typeof etherscanConfig> = {
+  // required SupportedChainId since specified in etherscanConfig
+  [SupportedChainId.BASE_MAINNET]: process.env.BASESCAN_API_KEY || "",
+  [SupportedChainId.EVMOS_MAINNET]: process.env.ESCAN_API_KEY || "",
+  [SupportedChainId.MANTLE_MAINNET]: process.env.MANTLESCAN_API_KEY || "",
+  [SupportedChainId.POLYGON_ZKEVM]: process.env.ZKEVMSCAN_API_KEY || "",
+  [SupportedChainId.LINEA_MAINNET]: process.env.LINEASCAN_API_KEY || "",
+  [SupportedChainId.OPBNB_MAINNET]: process.env.OPBNBSCAN_API_KEY || "",
+  [SupportedChainId.FANTOM_MAINNET]: process.env.FTMSCAN_API_KEY || "",
+  [SupportedChainId.INK_SEPOLIA]: dummyApiKey, // no API key required
+  [SupportedChainId.INK_MAINNET]: dummyApiKey, // no API key required
+  [SupportedChainId.BERACHAIN_MAINNET]: dummyApiKey, // no API key required
+
+  // extra optional SupportedChainId
+  [SupportedChainId.ARBITRUM_MAINNET]: process.env.ARBISCAN_API_KEY || "",
+  [SupportedChainId.AVALANCHE_MAINNET]: process.env.SNOWTRACE_API_KEY || "",
+  [SupportedChainId.BSC_MAINNET]: process.env.BSCSCAN_API_KEY || "",
+  [SupportedChainId.ETHEREUM_MAINNET]: process.env.ETHERSCAN_API_KEY || "",
+  [SupportedChainId.OPTIMISM_MAINNET]: process.env.OPTIMISM_API_KEY || "",
+  [SupportedChainId.POLYGON_MAINNET]: process.env.POLYGONSCAN_API_KEY || "",
+  [SupportedChainId.POLYGON_MUMBAI]: process.env.POLYGONSCAN_API_KEY || "",
+  [SupportedChainId.SEPOLIA]: process.env.ETHERSCAN_API_KEY || "",
+};
+
+// Call this function at the start of your application
+verifyConfigIntegrity(etherscanConfig, etherscanApiKeys as Record<SupportedChainId, string>);
 
 const forkChain: SupportedChainId = CHAIN_ID;
 
@@ -55,19 +199,10 @@ const chainNames: Record<SupportedChainId, string> = {
   [SupportedChainId.BASE_MAINNET]: "base-mainnet",
   [SupportedChainId.ZKSYNC_TESTNET]: "zksync-testnet",
   [SupportedChainId.ZKSYNC_MAINNET]: "zksync-mainnet",
+  [SupportedChainId.INK_SEPOLIA]: "ink-sepolia",
+  [SupportedChainId.INK_MAINNET]: "ink-mainnet",
+  [SupportedChainId.BERACHAIN_MAINNET]: "berachain-mainnet",
 };
-
-function getAccounts() {
-  if (mnemonic) {
-    const accounts = {
-      count: 10,
-      mnemonic,
-      path: "m/44'/60'/0'/0",
-    };
-    return accounts;
-  }
-  throw new Error("Either mnemonic or PKs should be defined");
-}
 
 // NOTE: we mostly don't care fast fork tests from caching
 const forkBlockNumbers: Partial<Record<SupportedChainId, number>> = {
@@ -171,6 +306,20 @@ const fallbackRpcUrls: Record<SupportedChainId, string[]> = {
   ],
   [SupportedChainId.ZKSYNC_TESTNET]: ["https://sepolia.era.zksync.dev"],
   [SupportedChainId.ZKSYNC_MAINNET]: ["https://mainnet.era.zksync.io"],
+  [SupportedChainId.INK_SEPOLIA]: [
+    "https://rpc-gel-sepolia.inkonchain.com",
+    "https://rpc-qnd-sepolia.inkonchain.com",
+    "https://rpc-ten-sepolia.inkonchain.com",
+  ],
+  [SupportedChainId.INK_MAINNET]: [
+    "https://rpc-gel.inkonchain.com",
+  ],
+  [SupportedChainId.BERACHAIN_MAINNET]: [
+    "https://berachain.blockpi.network/v1/rpc/public",
+    "https://berachain-rpc.publicnode.com",
+    "https://rpc.berachain-apis.com",
+    "https://rpc.berachain.com",
+  ],
 };
 
 const defaultRpcUrls: Record<SupportedChainId, string> = {
@@ -196,6 +345,9 @@ const defaultRpcUrls: Record<SupportedChainId, string> = {
   [SupportedChainId.BASE_MAINNET]: fallbackRpcUrls[SupportedChainId.BASE_MAINNET][0],
   [SupportedChainId.ZKSYNC_TESTNET]: fallbackRpcUrls[SupportedChainId.ZKSYNC_TESTNET][0],
   [SupportedChainId.ZKSYNC_MAINNET]: fallbackRpcUrls[SupportedChainId.ZKSYNC_MAINNET][0],
+  [SupportedChainId.INK_SEPOLIA]: fallbackRpcUrls[SupportedChainId.INK_SEPOLIA][0],
+  [SupportedChainId.INK_MAINNET]: fallbackRpcUrls[SupportedChainId.INK_MAINNET][0],
+  [SupportedChainId.BERACHAIN_MAINNET]: fallbackRpcUrls[SupportedChainId.BERACHAIN_MAINNET][0],
 };
 
 const infuraSupportedNetworks: Partial<Record<SupportedChainId, boolean>> = {
@@ -220,7 +372,13 @@ function getChainConfig(chainId: SupportedChainId): NetworkUserConfig {
   const jsonRpcUrl = getChainUrl(chainId);
 
   return {
-    accounts: getAccounts(),
+    accounts: hasPK
+      ? [deployerPK]
+      : {
+          count: 10,
+          mnemonic: mnemonic!,
+          path: "m/44'/60'/0'/0",
+        },
     chainId,
     url: jsonRpcUrl,
     timeout: 60_000, // added as the default timeout isn't sufficient for Hedera
@@ -237,6 +395,16 @@ const chainConfigs = Object.entries(chainNames).reduce((config, [chainIdString, 
   }
 }, {} as Record<string, ReturnType<typeof getChainConfig>>);
 
+const chainVerifyApiKeys = Object.entries(chainNames).reduce((config, [chainIdString, chainName]) => {
+  const chainId = Number(chainIdString);
+  if (isValidChainId(chainId)) {
+    config[chainName] = etherscanApiKeys[chainId] || "";
+    return config;
+  } else {
+    throw new Error("Invalid chainId");
+  }
+}, {} as Record<string, string>);
+
 function getForkChainConfig(chain: SupportedChainId): {
   url: string;
   blockNumber?: number;
@@ -250,35 +418,31 @@ function getForkChainConfig(chain: SupportedChainId): {
   };
 }
 
+const chainConfigsArray: ChainConfig[] = Object.entries(etherscanConfig).reduce((acc, [chainIdString, config]) => {
+  const chainId = Number(chainIdString) as SupportedChainId;
+  const networkName = chainNames[chainId];
+  // Construct the ChainConfig object if URLs are provided
+  if (config?.urls) {
+    const chainConfig: ChainConfig = {
+      network: networkName,
+      chainId,
+      urls: config.urls,
+    };
+    acc.push(chainConfig);
+  }
+  return acc;
+}, [] as ChainConfig[]);
+
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   namedAccounts: {
     deployer: 0,
-    governor: 1,
-    lp: 2,
   },
   etherscan: {
     apiKey: {
-      arbitrumOne: process.env.ARBISCAN_API_KEY || "",
-      avalanche: process.env.SNOWTRACE_API_KEY || "",
-      bsc: process.env.BSCSCAN_API_KEY || "",
-      mainnet: process.env.ETHERSCAN_API_KEY || "",
-      optimisticEthereum: process.env.OPTIMISM_API_KEY || "",
-      polygon: process.env.POLYGONSCAN_API_KEY || "",
-      polygonMumbai: process.env.POLYGONSCAN_API_KEY || "",
-      sepolia: process.env.ETHERSCAN_API_KEY || "",
-      evmos: process.env.ESCAN_API_KEY || "",
+      ...chainVerifyApiKeys,
     },
-    customChains: [
-      {
-        chainId: 9001,
-        network: "evmos",
-        urls: {
-          apiURL: "https://escan.live/api",
-          browserURL: "https://escan.live"
-        }
-      }
-    ]
+    customChains: chainConfigsArray,
   },
   gasReporter: {
     currency: "USD",
@@ -297,7 +461,9 @@ const config: HardhatUserConfig = {
       },
     },
     ganache: {
-      accounts: getAccounts(),
+      accounts: {
+        mnemonic
+      },
       chainId: SupportedChainId.GANACHE,
       url: "http://localhost:8545",
     },

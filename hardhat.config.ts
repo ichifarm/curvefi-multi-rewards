@@ -95,6 +95,12 @@ export const etherscanConfig: Partial<Record<SupportedChainId, ChainConfigMinima
       browserURL: "https://pqr0zfqez8pm54s.blockscout.com",
     },
   },
+  [SupportedChainId.BERACHAIN_MAINNET]: {
+    urls: {
+      apiURL: "https://api.routescan.io/v2/network/mainnet/evm/80094/etherscan",
+      browserURL:  "https://beratrail.io",
+    },
+  },
   [SupportedChainId.MANTLE_MAINNET]: {
     // urls: {
     //   apiURL: "https://api.routescan.io/v2/network/mainnet/evm/5000/etherscan",
@@ -152,6 +158,7 @@ export const etherscanApiKeys: EnforcedApiKeys<typeof etherscanConfig> = {
   [SupportedChainId.FANTOM_MAINNET]: process.env.FTMSCAN_API_KEY || "",
   [SupportedChainId.INK_SEPOLIA]: dummyApiKey, // no API key required
   [SupportedChainId.INK_MAINNET]: dummyApiKey, // no API key required
+  [SupportedChainId.BERACHAIN_MAINNET]: dummyApiKey, // no API key required
 
   // extra optional SupportedChainId
   [SupportedChainId.ARBITRUM_MAINNET]: process.env.ARBISCAN_API_KEY || "",
@@ -194,6 +201,7 @@ const chainNames: Record<SupportedChainId, string> = {
   [SupportedChainId.ZKSYNC_MAINNET]: "zksync-mainnet",
   [SupportedChainId.INK_SEPOLIA]: "ink-sepolia",
   [SupportedChainId.INK_MAINNET]: "ink-mainnet",
+  [SupportedChainId.BERACHAIN_MAINNET]: "berachain-mainnet",
 };
 
 // NOTE: we mostly don't care fast fork tests from caching
@@ -304,7 +312,13 @@ const fallbackRpcUrls: Record<SupportedChainId, string[]> = {
     "https://rpc-ten-sepolia.inkonchain.com",
   ],
   [SupportedChainId.INK_MAINNET]: [
-    "https://rpc-gel.inkonchain.com/fd96af67f38f4bf8a137b167171eeddd",
+    "https://rpc-gel.inkonchain.com",
+  ],
+  [SupportedChainId.BERACHAIN_MAINNET]: [
+    "https://berachain.blockpi.network/v1/rpc/public",
+    "https://berachain-rpc.publicnode.com",
+    "https://rpc.berachain-apis.com",
+    "https://rpc.berachain.com",
   ],
 };
 
@@ -333,6 +347,7 @@ const defaultRpcUrls: Record<SupportedChainId, string> = {
   [SupportedChainId.ZKSYNC_MAINNET]: fallbackRpcUrls[SupportedChainId.ZKSYNC_MAINNET][0],
   [SupportedChainId.INK_SEPOLIA]: fallbackRpcUrls[SupportedChainId.INK_SEPOLIA][0],
   [SupportedChainId.INK_MAINNET]: fallbackRpcUrls[SupportedChainId.INK_MAINNET][0],
+  [SupportedChainId.BERACHAIN_MAINNET]: fallbackRpcUrls[SupportedChainId.BERACHAIN_MAINNET][0],
 };
 
 const infuraSupportedNetworks: Partial<Record<SupportedChainId, boolean>> = {

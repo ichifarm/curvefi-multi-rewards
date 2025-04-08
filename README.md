@@ -311,4 +311,7 @@ Make sure the deployer private key is configured.
 npx hardhat ignition deploy ignition/modules/MultiRewards.ts --network <network-name>
 
 # use the --verify flag to also verify the deployment
+
+# or separately verify post deployment using
+pnpm verify --network <network-name>
 ```
